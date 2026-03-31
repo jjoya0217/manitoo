@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>학급 마니또</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Noto Sans KR', sans-serif;
+      background: #f0f4ff;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .login-card {
+      background: white;
+      border-radius: 16px;
+      padding: 40px 36px;
+      width: 100%;
+      max-width: 380px;
+      box-shadow: 0 4px 24px rgba(0,0,0,0.08);
+    }
+
+    .logo {
+      text-align: center;
+      margin-bottom: 28px;
+    }
+
+    .logo .emoji {
+      font-size: 48px;
+      display: block;
+      margin-bottom: 8px;
+    }
+
+    .logo h1 {
+      font-size: 22px;
+      font-weight: 700;
+      color: #3a3af4;
+    }
+
+    .logo p {
+      font-size: 13px;
+      color: #888;
+      margin-top: 4px;
+    }
+
+    .tab-group {
+      display: flex;
+      background: #f4f4f8;
+      border-radius: 10px;
+      padding: 4px;
+      margin-bottom: 24px;
+    }
+
+    .tab-btn {
+      flex: 1;
+      padding: 9px;
+      border: none;
+      background: transparent;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 600;
+      color: #888;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .tab-btn.active {
+      background: white;
+      color: #3a3af4;
+      box-shadow: 0 1px 6px rgba(0,0,0,0.1);
+    }
+
+    .form-group { margin-bottom: 14px; }
+
+    label {
+      display: block;
+      font-size: 13px;
+      font-weight: 600;
+      color: #555;
+      margin-bottom: 6px;
+    }
+
+    input {
+      width: 100%;
+      padding: 11px 14px;
+      border: 1.5px solid #e0e0e0;
+      border-radius: 10px;
+      font-size: 15px;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    input:focus { border-color: #3a3af4; }
+
+    .login-btn {
+      width: 100%;
+      padding: 13px;
+      background: #3a3af4;
+      color: white;
+      border: none;
+      border-radius: 10px;
+      font-size: 16px;
+      font-weight: 700;
+      cursor: pointer;
+      margin-top: 8px;
+      transition: background 0.2s;
+    }
+
+    .login-btn:hover { background: #2929d4; }
+
+    .error-msg {
+      color: #e53935;
+      font-size: 13px;
+      margin-top: 10px;
+      text-align: center;
+      min-height: 18px;
+    }
+
+    .loading {
+      display: none;
+      text-align: center;
+      color: #888;
+      font-size: 14px;
+      margin-top: 10px;
+    }
+  </style>
+</head>
+<body>
+
+<div class="login-card">
+  <div class="logo">
+    <span class="emoji">🎭</span>
+    <h1>학급 마니또</h1>
+    <p>비밀 친구와 따뜻한 마음을 나눠요</p>
+    <a href="manitoo-guide.html" target="_blank" style="
+      display:inline-block;
+      margin-top:10px;
+      padding:6px 16px;
+      background:#f0f4ff;
+      border:1.5px solid #c7d2fe;
+      border-radius:20px;
+      font-size:12px;
+      color:#3a3af4;
+      font-weight:600;
+      text-decoration:none;
+    ">📖 사용 안내서 보기</a>
+  </div>
+
+  <div class="tab-group">
+    <button class="tab-btn active" id="tab-student" onclick="switchTab('student')">🧑‍🎓 학생</button>
+    <button class="tab-btn" id="tab-teacher" onclick="switchTab('teacher')">👩‍🏫 교사</button>
+  </div>
+
+  <!-- 학생 로그인 폼 -->
+  <div id="student-form">
+    <div class="form-group">
+      <label>학번 (4자리)</label>
+      <input type="text" id="student-num" placeholder="예: 0312" maxlength="4" inputmode="numeric">
+    </div>
+    <div class="form-group">
+      <label>비밀번호</label>
+      <input type="password" id="student-pw" placeholder="비밀번호 입력"
+        onkeydown="if(event.key==='Enter') loginStudent()">
+    </div>
+    <button class="login-btn" onclick="loginStudent()">로그인</button>
+  </div>
+
+  <!-- 교사 로그인 폼 -->
+  <div id="teacher-form" style="display:none;">
+    <div class="form-group">
+      <label>아이디</label>
+      <input type="text" id="teacher-id" placeholder="교사 아이디 입력">
+    </div>
+    <div class="form-group">
+      <label>비밀번호</label>
+      <input type="password" id="teacher-pw" placeholder="비밀번호 입력"
+        onkeydown="if(event.key==='Enter') loginTeacher()">
+    </div>
+    <button class="login-btn" onclick="loginTeacher()">로그인</button>
+  </div>
+
+  <div class="error-msg" id="error-msg"></div>
+  <div class="loading" id="loading">로그인 중...</div>
+</div>
+
+<!-- Firebase compat SDK (모듈 방식 아닌 일반 스크립트) -->
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+
+<script>
+  // Firebase 초기화
+  const firebaseConfig = {
+    apiKey: "AIzaSyAyrDvr4m6TpBaZvqLDnQ_VAaKEQfKlNuI",
+    authDomain: "class-manitoo.firebaseapp.com",
+    projectId: "class-manitoo",
+    storageBucket: "class-manitoo.firebasestorage.app",
+    messagingSenderId: "415504976007",
+    appId: "1:415504976007:web:538c799557c9ef39ae9022"
+  };
+
+  firebase.initializeApp(firebaseConfig);
+  const db = firebase.firestore();
+
+  // 탭 전환
+  function switchTab(tab) {
+    document.getElementById('tab-student').classList.toggle('active', tab === 'student');
+    document.getElementById('tab-teacher').classList.toggle('active', tab === 'teacher');
+    document.getElementById('student-form').style.display = tab === 'student' ? 'block' : 'none';
+    document.getElementById('teacher-form').style.display = tab === 'teacher' ? 'block' : 'none';
+    document.getElementById('error-msg').textContent = '';
+  }
+
+  // 학생 로그인
+  async function loginStudent() {
+    const studentNum = document.getElementById('student-num').value.trim();
+    const password = document.getElementById('student-pw').value.trim();
+    const errorEl = document.getElementById('error-msg');
+    const loadingEl = document.getElementById('loading');
+
+    errorEl.textContent = '';
+
+    if (!studentNum || !password) {
+      errorEl.textContent = '학번과 비밀번호를 모두 입력해주세요.';
+      return;
+    }
+
+    loadingEl.style.display = 'block';
+
+    try {
+      const snapshot = await db.collection('users')
+        .where('studentNum', '==', studentNum)
+        .where('role', '==', 'student')
+        .get();
+
+      if (snapshot.empty) {
+        errorEl.textContent = '학번을 찾을 수 없어요.';
+        loadingEl.style.display = 'none';
+        return;
+      }
+
+      const userDoc = snapshot.docs[0];
+      const userData = userDoc.data();
+
+      if (userData.password !== password) {
+        errorEl.textContent = '비밀번호가 틀렸어요.';
+        loadingEl.style.display = 'none';
+        return;
+      }
+
+      sessionStorage.setItem('userId', userDoc.id);
+      sessionStorage.setItem('role', 'student');
+      sessionStorage.setItem('userName', userData.name);
+      sessionStorage.setItem('userNum', userData.studentNum);
+
+      if (userData.isFirstLogin) {
+        window.location.href = 'change-password.html';
+      } else {
+        window.location.href = 'student.html';
+      }
+
+    } catch (e) {
+      console.error(e);
+      errorEl.textContent = '오류: ' + e.message;
+      loadingEl.style.display = 'none';
+    }
+  }
+
+  // 교사 로그인
+  async function loginTeacher() {
+    const teacherId = document.getElementById('teacher-id').value.trim();
+    const password = document.getElementById('teacher-pw').value.trim();
+    const errorEl = document.getElementById('error-msg');
+    const loadingEl = document.getElementById('loading');
+
+    errorEl.textContent = '';
+
+    if (!teacherId || !password) {
+      errorEl.textContent = '아이디와 비밀번호를 모두 입력해주세요.';
+      return;
+    }
+
+    loadingEl.style.display = 'block';
+
+    try {
+      const snapshot = await db.collection('users')
+        .where('teacherId', '==', teacherId)
+        .where('role', '==', 'teacher')
+        .get();
+
+      if (snapshot.empty) {
+        errorEl.textContent = '아이디를 찾을 수 없어요.';
+        loadingEl.style.display = 'none';
+        return;
+      }
+
+      const userDoc = snapshot.docs[0];
+      const userData = userDoc.data();
+
+      if (userData.password !== password) {
+        errorEl.textContent = '비밀번호가 틀렸어요.';
+        loadingEl.style.display = 'none';
+        return;
+      }
+
+      sessionStorage.setItem('userId', userDoc.id);
+      sessionStorage.setItem('role', 'teacher');
+      sessionStorage.setItem('userName', userData.name);
+
+      window.location.href = 'teacher.html';
+
+    } catch (e) {
+      console.error(e);
+      errorEl.textContent = '오류: ' + e.message;
+      loadingEl.style.display = 'none';
+    }
+  }
+</script>
+
+</body>
+</html>

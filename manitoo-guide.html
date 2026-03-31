@@ -1,0 +1,578 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>학급 마니또 사용 안내서</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Noto Sans KR', 'Apple SD Gothic Neo', sans-serif;
+      background: #f5f7ff;
+      color: #333;
+      line-height: 1.7;
+    }
+
+    /* 커버 */
+    .cover {
+      background: linear-gradient(135deg, #3a3af4, #7c7cf8);
+      color: white;
+      text-align: center;
+      padding: 60px 24px;
+    }
+
+    .cover .emoji { font-size: 64px; display: block; margin-bottom: 16px; }
+    .cover h1 { font-size: 32px; font-weight: 800; margin-bottom: 10px; }
+    .cover p { font-size: 16px; opacity: 0.88; margin-bottom: 6px; }
+    .cover .url {
+      display: inline-block;
+      margin-top: 20px;
+      background: rgba(255,255,255,0.2);
+      padding: 10px 24px;
+      border-radius: 30px;
+      font-size: 15px;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+    }
+
+    /* 목차 */
+    .toc {
+      max-width: 800px;
+      margin: 32px auto;
+      padding: 0 20px;
+    }
+
+    .toc-card {
+      background: white;
+      border-radius: 14px;
+      padding: 24px 28px;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+    }
+
+    .toc-card h2 { font-size: 16px; color: #3a3af4; margin-bottom: 14px; }
+    .toc-list { list-style: none; }
+    .toc-list li {
+      padding: 6px 0;
+      border-bottom: 1px solid #f0f0f0;
+      font-size: 14px;
+    }
+    .toc-list li:last-child { border-bottom: none; }
+    .toc-list a { color: #444; text-decoration: none; }
+    .toc-list a:hover { color: #3a3af4; }
+    .toc-badge {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 10px;
+      font-size: 11px;
+      font-weight: 700;
+      margin-right: 6px;
+    }
+    .badge-teacher { background: #ede9fe; color: #5b21b6; }
+    .badge-student { background: #dcfce7; color: #15803d; }
+
+    /* 섹션 */
+    .section {
+      max-width: 800px;
+      margin: 0 auto 32px;
+      padding: 0 20px;
+    }
+
+    .section-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 16px;
+      padding-bottom: 10px;
+      border-bottom: 3px solid #3a3af4;
+    }
+
+    .section-header .icon { font-size: 28px; }
+    .section-header h2 { font-size: 20px; font-weight: 800; color: #222; }
+    .section-header .role-badge {
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .teacher-color { border-bottom-color: #7c3aed; }
+    .teacher-color .role-badge { background: #ede9fe; color: #5b21b6; }
+    .student-color { border-bottom-color: #16a34a; }
+    .student-color .role-badge { background: #dcfce7; color: #15803d; }
+    .common-color { border-bottom-color: #3a3af4; }
+
+    /* 카드 */
+    .card {
+      background: white;
+      border-radius: 14px;
+      padding: 22px 24px;
+      margin-bottom: 14px;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+    }
+
+    .card h3 {
+      font-size: 15px;
+      font-weight: 700;
+      color: #333;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .card p { font-size: 14px; color: #555; margin-bottom: 8px; }
+    .card p:last-child { margin-bottom: 0; }
+
+    /* 스텝 */
+    .steps { list-style: none; counter-reset: step; }
+    .steps li {
+      counter-increment: step;
+      display: flex;
+      gap: 12px;
+      padding: 10px 0;
+      border-bottom: 1px solid #f4f4f4;
+      font-size: 14px;
+      color: #444;
+      align-items: flex-start;
+    }
+    .steps li:last-child { border-bottom: none; }
+    .steps li::before {
+      content: counter(step);
+      min-width: 24px;
+      height: 24px;
+      background: #3a3af4;
+      color: white;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      font-weight: 700;
+      flex-shrink: 0;
+    }
+
+    .teacher-steps li::before { background: #7c3aed; }
+    .student-steps li::before { background: #16a34a; }
+
+    /* 포인트 테이블 */
+    .point-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 14px;
+      margin-top: 8px;
+    }
+
+    .point-table th {
+      background: #f8f9ff;
+      padding: 10px 14px;
+      text-align: left;
+      color: #555;
+      font-weight: 700;
+      border-bottom: 2px solid #eee;
+    }
+
+    .point-table td {
+      padding: 10px 14px;
+      border-bottom: 1px solid #f0f0f0;
+      color: #444;
+    }
+
+    .point-table tr:last-child td { border-bottom: none; }
+
+    .point {
+      font-weight: 700;
+      color: #3a3af4;
+    }
+
+    /* 이모지 그리드 */
+    .emoji-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      margin-top: 10px;
+    }
+
+    .emoji-item {
+      background: #f8f9ff;
+      border: 1.5px solid #e0e4ff;
+      border-radius: 10px;
+      padding: 12px 8px;
+      text-align: center;
+    }
+
+    .emoji-item .e { font-size: 24px; display: block; margin-bottom: 4px; }
+    .emoji-item .t { font-size: 12px; color: #555; }
+
+    /* 주의사항 */
+    .notice {
+      background: #fff7ed;
+      border-left: 4px solid #f59e0b;
+      border-radius: 0 10px 10px 0;
+      padding: 12px 16px;
+      margin-top: 10px;
+      font-size: 13px;
+      color: #92400e;
+    }
+
+    .notice strong { color: #b45309; }
+
+    .tip {
+      background: #f0fdf4;
+      border-left: 4px solid #22c55e;
+      border-radius: 0 10px 10px 0;
+      padding: 12px 16px;
+      margin-top: 10px;
+      font-size: 13px;
+      color: #15803d;
+    }
+
+    /* 구분선 */
+    .divider {
+      max-width: 800px;
+      margin: 0 auto 32px;
+      padding: 0 20px;
+      text-align: center;
+      font-size: 13px;
+      color: #aaa;
+    }
+
+    /* 푸터 */
+    footer {
+      background: #3a3af4;
+      color: white;
+      text-align: center;
+      padding: 24px;
+      font-size: 13px;
+      opacity: 0.9;
+      margin-top: 40px;
+    }
+
+    @media print {
+      .cover { padding: 40px 20px; }
+      .section { page-break-inside: avoid; }
+      .card { box-shadow: none; border: 1px solid #eee; }
+    }
+
+    @media (max-width: 600px) {
+      .cover h1 { font-size: 24px; }
+      .emoji-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+  </style>
+</head>
+<body>
+
+<!-- 커버 -->
+<div class="cover">
+  <span class="emoji">🎭</span>
+  <h1>학급 마니또 사용 안내서</h1>
+  <p>비밀 친구와 따뜻한 마음을 나눠요</p>
+  <p>교사 및 학생 사용 설명서</p>
+  <div class="url">https://class-manitoo.web.app</div>
+</div>
+
+<!-- 목차 -->
+<div class="toc">
+  <div class="toc-card">
+    <h2>📋 목차</h2>
+    <ul class="toc-list">
+      <li><span class="toc-badge" style="background:#e0e7ff;color:#3a3af4;">공통</span> 마니또란? / 접속 방법</li>
+      <li><span class="toc-badge badge-teacher">교사</span> 1. 로그인</li>
+      <li><span class="toc-badge badge-teacher">교사</span> 2. 학생 명단 등록</li>
+      <li><span class="toc-badge badge-teacher">교사</span> 3. 마니또 랜덤 배정</li>
+      <li><span class="toc-badge badge-teacher">교사</span> 4. 미션 관리</li>
+      <li><span class="toc-badge badge-teacher">교사</span> 5. 포인트 현황 & CSV 다운로드</li>
+      <li><span class="toc-badge badge-teacher">교사</span> 6. 마니또 공개 이벤트</li>
+      <li><span class="toc-badge badge-teacher">교사</span> 7. 리셋 (새 마니또 시작)</li>
+      <li><span class="toc-badge badge-student">학생</span> 1. 첫 로그인 & 비밀번호 변경</li>
+      <li><span class="toc-badge badge-student">학생</span> 2. 내 마니또 대상 확인</li>
+      <li><span class="toc-badge badge-student">학생</span> 3. 활동 이모지 보내기</li>
+      <li><span class="toc-badge badge-student">학생</span> 4. 받은 피드 & 반응 이모지</li>
+      <li><span class="toc-badge badge-student">학생</span> 5. 포인트 & 미션 확인</li>
+      <li><span class="toc-badge" style="background:#fef3c7;color:#92400e;">안내</span> 포인트 시스템 & 주의사항</li>
+    </ul>
+  </div>
+</div>
+
+<!-- 공통: 마니또란 -->
+<div class="section">
+  <div class="section-header common-color">
+    <span class="icon">🎭</span>
+    <h2>마니또란 무엇인가요?</h2>
+  </div>
+  <div class="card">
+    <p>마니또는 <strong>비밀 친구</strong> 활동이에요. 내가 챙겨줄 친구(마니또 대상)가 정해지면, 상대방 모르게 몰래 작은 친절을 베푸는 활동이에요.</p>
+    <p>이 앱에서는 <strong>이모지</strong>로 활동을 기록하고, 포인트를 쌓으며 마니또 활동을 재미있게 진행할 수 있어요.</p>
+    <div class="tip">💡 마니또 공개 이벤트 날까지 내 마니또가 누구인지 비밀로 유지해요!</div>
+  </div>
+
+  <div class="card">
+    <h3>🌐 접속 방법</h3>
+    <ul class="steps">
+      <li>스마트폰 또는 PC에서 크롬 브라우저를 열어요</li>
+      <li>주소창에 <strong>https://class-manitoo.web.app</strong> 입력</li>
+      <li>학생 / 교사 탭을 선택하고 로그인해요</li>
+    </ul>
+  </div>
+</div>
+
+<!-- ============ 교사 기능 ============ -->
+<div class="section">
+  <div class="section-header teacher-color">
+    <span class="icon">👩‍🏫</span>
+    <h2>교사 기능</h2>
+    <span class="role-badge">교사 전용</span>
+  </div>
+
+  <!-- 교사 로그인 -->
+  <div class="card">
+    <h3>🔐 1. 로그인</h3>
+    <ul class="steps teacher-steps">
+      <li>접속 후 상단 <strong>교사</strong> 탭 선택</li>
+      <li>교사 아이디와 비밀번호 입력 후 로그인</li>
+      <li>교사 대시보드 화면으로 이동</li>
+    </ul>
+  </div>
+
+  <!-- 학생 명단 등록 -->
+  <div class="card">
+    <h3>👥 2. 학생 명단 등록</h3>
+    <ul class="steps teacher-steps">
+      <li><strong>학생 명단</strong> 탭 클릭</li>
+      <li>이름과 학번(4자리) 입력 후 <strong>추가</strong> 버튼 클릭</li>
+      <li>자동으로 생성된 <strong>6자리 임시 비밀번호</strong>를 학생에게 개별 전달</li>
+      <li>전체 학생 등록 완료까지 반복</li>
+    </ul>
+    <div class="notice">⚠️ <strong>임시 비밀번호는 반드시 개별 전달!</strong> 학생들이 처음 로그인할 때 이 비밀번호가 필요해요. 목록에서 언제든지 확인 가능해요.</div>
+    <div class="tip">💡 비밀번호를 분실한 학생은 <strong>비번 초기화</strong> 버튼으로 새 임시 비밀번호를 발급해주세요.</div>
+  </div>
+
+  <!-- 마니또 배정 -->
+  <div class="card">
+    <h3>🎲 3. 마니또 랜덤 배정</h3>
+    <ul class="steps teacher-steps">
+      <li><strong>마니또 배정</strong> 탭 클릭</li>
+      <li><strong>지금 랜덤 배정하기</strong> 버튼 클릭</li>
+      <li>자동으로 1:1 랜덤 배정 (자기 자신은 절대 배정 안 됨)</li>
+      <li>배정 결과 확인 (이름 + 학번 표시)</li>
+    </ul>
+    <div class="notice">⚠️ 배정 후 학생들 화면에 마니또 대상이 즉시 표시돼요. 배정 전에 모든 학생이 로그인을 완료했는지 확인하세요.</div>
+  </div>
+
+  <!-- 미션 관리 -->
+  <div class="card">
+    <h3>⭐ 4. 미션 관리</h3>
+    <ul class="steps teacher-steps">
+      <li><strong>미션 관리</strong> 탭 클릭</li>
+      <li>미션 내용 입력 후 <strong>등록</strong> 버튼 클릭</li>
+      <li>등록된 미션은 학생 화면 하단 미션 목록에 자동 표시</li>
+    </ul>
+    <p style="margin-top:10px;font-size:13px;color:#888;">미션 예시: "마니또에게 응원 메모 몰래 남기기", "마니또가 힘들 때 말 한마디 건네기"</p>
+    <div class="tip">💡 학생들이 미션을 수행할 때 활동 이모지에서 ⭐ 미션 수행 이모지를 선택해서 기록해요.</div>
+  </div>
+
+  <!-- 포인트 현황 -->
+  <div class="card">
+    <h3>🏆 5. 포인트 현황 & CSV 다운로드</h3>
+    <ul class="steps teacher-steps">
+      <li><strong>포인트 현황</strong> 탭 클릭</li>
+      <li>학생별 포인트 순위 실시간 확인</li>
+      <li><strong>CSV 다운로드</strong> 버튼으로 엑셀 파일 저장</li>
+    </ul>
+    <div class="tip">💡 🤷 반응이 많은 학생은 마니또 활동이 잘 전달되지 않는 경우예요. 조용히 해당 학생을 독려해주세요.</div>
+  </div>
+
+  <!-- 공개 이벤트 -->
+  <div class="card">
+    <h3>🎊 6. 마니또 공개 이벤트</h3>
+    <ul class="steps teacher-steps">
+      <li><strong>공개 이벤트</strong> 탭 클릭</li>
+      <li>공개할 학생 옆 <strong>공개하기</strong> 버튼 클릭</li>
+      <li>해당 학생 화면에만 마니또 이름(학번)이 공개됨</li>
+      <li>한 명씩 순서대로 공개하며 이벤트 진행</li>
+    </ul>
+    <div class="notice">⚠️ 공개는 한 명씩 진행돼요. 한 번 공개하면 되돌릴 수 없어요!</div>
+    <div class="tip">💡 공개 전에 <strong>포인트 현황 → CSV 다운로드</strong>로 최종 결과를 저장해두세요.</div>
+  </div>
+
+  <!-- 리셋 -->
+  <div class="card">
+    <h3>🔄 7. 리셋 (새 마니또 시작)</h3>
+    <ul class="steps teacher-steps">
+      <li><strong>설정</strong> 탭 클릭</li>
+      <li><strong>전체 초기화(리셋)</strong> 버튼 클릭</li>
+      <li>경고창 확인 후 포인트 저장 여부 선택</li>
+      <li>초기화 완료 → 새 마니또 운영 시작 가능</li>
+    </ul>
+    <div class="notice">⚠️ <strong>리셋하면 모든 데이터가 영구 삭제돼요!</strong> 반드시 CSV를 먼저 저장하세요.</div>
+  </div>
+</div>
+
+<!-- ============ 학생 기능 ============ -->
+<div class="section">
+  <div class="section-header student-color">
+    <span class="icon">🧑‍🎓</span>
+    <h2>학생 기능</h2>
+    <span class="role-badge">학생 전용</span>
+  </div>
+
+  <!-- 첫 로그인 -->
+  <div class="card">
+    <h3>🔐 1. 첫 로그인 & 비밀번호 변경</h3>
+    <ul class="steps student-steps">
+      <li>접속 후 <strong>학생</strong> 탭 선택</li>
+      <li>학번(4자리)과 선생님께 받은 <strong>임시 비밀번호(6자리)</strong> 입력</li>
+      <li>나만 아는 <strong>새 비밀번호(4자리 숫자)</strong> 설정</li>
+      <li>비밀번호 확인 입력 후 <strong>설정 완료</strong> 클릭</li>
+      <li>학생 대시보드로 이동 + 로그인 보너스 <strong>+3점</strong> 적립!</li>
+    </ul>
+    <div class="notice">⚠️ 새 비밀번호는 친구들이 유추하기 어려운 숫자로 설정하세요. 비밀번호를 잊으면 선생님께 초기화를 요청하세요.</div>
+  </div>
+
+  <!-- 마니또 대상 확인 -->
+  <div class="card">
+    <h3>🎯 2. 내 마니또 대상 확인</h3>
+    <p>대시보드 상단에 <strong>내가 챙겨줄 친구 이름(학번)</strong>이 표시돼요.</p>
+    <p>선생님이 배정하기 전까지는 대기 화면이 표시돼요.</p>
+    <div class="notice">⚠️ 내 마니또 대상은 절대 다른 친구에게 알려주지 마세요! 공개 이벤트 날까지 비밀이에요.</div>
+  </div>
+
+  <!-- 활동 이모지 -->
+  <div class="card">
+    <h3>📤 3. 활동 이모지 보내기</h3>
+    <p>마니또 대상에게 무언가를 해줬을 때 이모지로 기록해요.</p>
+    <div class="emoji-grid" style="margin:12px 0;">
+      <div class="emoji-item"><span class="e">🎁</span><span class="t">선물/간식</span></div>
+      <div class="emoji-item"><span class="e">💬</span><span class="t">응원/말걸기</span></div>
+      <div class="emoji-item"><span class="e">🤝</span><span class="t">도움</span></div>
+      <div class="emoji-item"><span class="e">😄</span><span class="t">웃게 해줌</span></div>
+      <div class="emoji-item"><span class="e">📝</span><span class="t">메모/편지</span></div>
+      <div class="emoji-item"><span class="e">⭐</span><span class="t">미션 수행</span></div>
+    </div>
+    <ul class="steps student-steps">
+      <li>이모지 6개 중 해당하는 것 선택 (파란 테두리로 표시)</li>
+      <li><strong>이모지 보내기 (+10점)</strong> 버튼 클릭</li>
+      <li>+10점 적립 완료!</li>
+    </ul>
+    <div class="notice">⚠️ <strong>하루 최대 2회</strong>만 보낼 수 있어요. 오늘의 2회를 다 쓰면 내일 다시 보낼 수 있어요.</div>
+    <div class="tip">💡 이모지는 <strong>매일 아침 7시</strong>에 상대방 피드에 공개돼요. 신중하게 보내세요!</div>
+  </div>
+
+  <!-- 받은 피드 & 반응 -->
+  <div class="card">
+    <h3>📥 4. 받은 피드 & 반응 이모지</h3>
+    <p>매일 아침 7시, 내 마니또가 보내준 활동 이모지가 피드에 공개돼요.</p>
+    <ul class="steps student-steps">
+      <li><strong>받은 활동 피드</strong> 카드에서 이모지 확인</li>
+      <li>해당 활동에 대한 반응 이모지 선택</li>
+      <li>반응 이모지 전송 → 나에게 <strong>+10점</strong>, 내 마니또에게 보너스 <strong>+5점!</strong></li>
+    </ul>
+    <div class="emoji-grid" style="margin:12px 0;">
+      <div class="emoji-item"><span class="e">🥰</span><span class="t">너무 고마워요</span></div>
+      <div class="emoji-item"><span class="e">😊</span><span class="t">기분 좋아요</span></div>
+      <div class="emoji-item"><span class="e">😲</span><span class="t">깜짝 놀랐어요</span></div>
+      <div class="emoji-item"><span class="e">🤗</span><span class="t">힘났어요</span></div>
+      <div class="emoji-item"><span class="e">💛</span><span class="t">따뜻했어요</span></div>
+      <div class="emoji-item" style="border-color:#fcd34d;background:#fffbeb;"><span class="e">🤷</span><span class="t">모르겠어요</span></div>
+    </div>
+    <div class="notice">⚠️ 반응 이모지는 <strong>활동 1개당 1회</strong>만 가능하고 <strong>수정은 1번</strong>만 할 수 있어요.</div>
+    <div class="tip">💡 🤷를 선택하면 포인트는 없지만 솔직한 반응이에요. 선생님이 파악해서 마니또 활동을 도와줄 거예요.</div>
+  </div>
+
+  <!-- 포인트 & 미션 -->
+  <div class="card">
+    <h3>🏆 5. 포인트 & 미션 확인</h3>
+    <p>대시보드 상단 <strong>보라색 배너</strong>에서 내 총 포인트를 실시간으로 확인할 수 있어요.</p>
+    <p>화면 하단 <strong>미션 목록</strong>에서 선생님이 등록한 미션을 확인하고 수행해보세요!</p>
+    <div class="tip">💡 미션을 수행했다면 활동 이모지에서 <strong>⭐ 미션 수행</strong>을 선택해서 보내세요.</div>
+  </div>
+</div>
+
+<!-- 포인트 시스템 -->
+<div class="section">
+  <div class="section-header common-color">
+    <span class="icon">💰</span>
+    <h2>포인트 시스템</h2>
+  </div>
+  <div class="card">
+    <table class="point-table">
+      <thead>
+        <tr>
+          <th>활동</th>
+          <th>포인트</th>
+          <th>비고</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>매일 로그인</td>
+          <td class="point">+3점</td>
+          <td>하루 1회만 적립</td>
+        </tr>
+        <tr>
+          <td>활동 이모지 전송</td>
+          <td class="point">+10점</td>
+          <td>하루 최대 2회</td>
+        </tr>
+        <tr>
+          <td>반응 이모지 전송 (긍정)</td>
+          <td class="point">+10점</td>
+          <td>받은 사람에게 적립</td>
+        </tr>
+        <tr>
+          <td>반응 이모지 보너스</td>
+          <td class="point">+5점</td>
+          <td>활동을 보낸 마니또에게 적립</td>
+        </tr>
+        <tr>
+          <td>반응 이모지 (🤷)</td>
+          <td style="color:#aaa;">+0점</td>
+          <td>양쪽 모두 0점</td>
+        </tr>
+      </tbody>
+    </table>
+    <div class="tip" style="margin-top:12px;">💡 미션 1회 완수 시 총 포인트: 보내는 사람 +10 + 받는 사람 +10 + 보너스 +5 = <strong>최대 25점!</strong></div>
+  </div>
+</div>
+
+<!-- 주의사항 -->
+<div class="section">
+  <div class="section-header common-color">
+    <span class="icon">📌</span>
+    <h2>주의사항 & 자주 묻는 질문</h2>
+  </div>
+
+  <div class="card">
+    <h3>❓ 비밀번호를 잊어버렸어요</h3>
+    <p>선생님께 비밀번호 초기화를 요청하세요. 선생님이 새 임시 비밀번호를 알려드릴 거예요.</p>
+  </div>
+
+  <div class="card">
+    <h3>❓ 오늘 이미 이모지를 2번 보냈어요</h3>
+    <p>하루 최대 2회 제한이에요. 내일 아침이 되면 다시 2회가 충전돼요!</p>
+  </div>
+
+  <div class="card">
+    <h3>❓ 받은 피드에 아무것도 안 보여요</h3>
+    <p>활동 이모지는 <strong>매일 아침 7시</strong>에 공개돼요. 전날 받은 이모지가 오늘 아침 7시에 표시돼요.</p>
+  </div>
+
+  <div class="card">
+    <h3>❓ 마니또가 누구인지 알 것 같아요</h3>
+    <p>공개 이벤트 날까지 절대 말하지 마세요! 비밀을 지키는 것도 마니또 활동의 일부예요 😊</p>
+  </div>
+
+  <div class="card">
+    <h3>❓ 이모지를 잘못 보냈어요</h3>
+    <p>활동 이모지는 한 번 보내면 취소가 안 돼요. 신중하게 선택해주세요!</p>
+    <p>반응 이모지는 수정을 1번 할 수 있어요.</p>
+  </div>
+</div>
+
+<footer>
+  🎭 학급 마니또 | https://class-manitoo.web.app<br>
+  문의사항은 선생님께 연락해주세요 😊
+</footer>
+
+</body>
+</html>

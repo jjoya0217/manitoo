@@ -1,0 +1,1047 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>교사 대시보드 — 학급 마니또</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Noto Sans KR', sans-serif;
+      background: #f0f4ff;
+      min-height: 100vh;
+    }
+
+    /* 상단 헤더 */
+    .header {
+      background: #3a3af4;
+      color: white;
+      padding: 16px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .header h1 { font-size: 18px; font-weight: 700; }
+    .header span { font-size: 13px; opacity: 0.85; }
+
+    .logout-btn {
+      background: rgba(255,255,255,0.2);
+      color: white;
+      border: none;
+      padding: 7px 14px;
+      border-radius: 8px;
+      font-size: 13px;
+      cursor: pointer;
+    }
+
+    /* 메인 컨텐츠 */
+    .container {
+      max-width: 900px;
+      margin: 24px auto;
+      padding: 0 16px;
+    }
+
+    /* 탭 메뉴 */
+    .tab-menu {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+    }
+
+    .tab-menu button {
+      padding: 9px 16px;
+      border: none;
+      border-radius: 10px;
+      background: white;
+      color: #666;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.07);
+      transition: all 0.2s;
+    }
+
+    .tab-menu button.active {
+      background: #3a3af4;
+      color: white;
+    }
+
+    /* 패널 */
+    .panel { display: none; }
+    .panel.active { display: block; }
+
+    /* 카드 */
+    .card {
+      background: white;
+      border-radius: 14px;
+      padding: 24px;
+      margin-bottom: 16px;
+      box-shadow: 0 1px 8px rgba(0,0,0,0.06);
+    }
+
+    .card h2 {
+      font-size: 16px;
+      font-weight: 700;
+      color: #333;
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    /* 입력 그룹 */
+    .input-row {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 12px;
+      flex-wrap: wrap;
+    }
+
+    input[type="text"], input[type="number"] {
+      padding: 10px 13px;
+      border: 1.5px solid #e0e0e0;
+      border-radius: 9px;
+      font-size: 14px;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    input:focus { border-color: #3a3af4; }
+
+    .btn {
+      padding: 10px 18px;
+      border: none;
+      border-radius: 9px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .btn-primary { background: #3a3af4; color: white; }
+    .btn-primary:hover { background: #2929d4; }
+    .btn-success { background: #22c55e; color: white; }
+    .btn-success:hover { background: #16a34a; }
+    .btn-danger { background: #ef4444; color: white; }
+    .btn-danger:hover { background: #dc2626; }
+    .btn-warning { background: #f59e0b; color: white; }
+    .btn-warning:hover { background: #d97706; }
+    .btn-gray { background: #e5e7eb; color: #555; }
+    .btn-gray:hover { background: #d1d5db; }
+
+    /* 학생 테이블 */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 14px;
+    }
+
+    th {
+      background: #f8f9ff;
+      padding: 10px 12px;
+      text-align: left;
+      color: #555;
+      font-weight: 600;
+      border-bottom: 1.5px solid #eee;
+    }
+
+    td {
+      padding: 10px 12px;
+      border-bottom: 1px solid #f0f0f0;
+      color: #333;
+    }
+
+    tr:hover td { background: #fafaff; }
+
+    .badge {
+      display: inline-block;
+      padding: 3px 9px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    .badge-blue { background: #e0e7ff; color: #3a3af4; }
+    .badge-green { background: #dcfce7; color: #16a34a; }
+    .badge-gray { background: #f3f4f6; color: #666; }
+    .badge-red { background: #fee2e2; color: #dc2626; }
+
+    /* 메시지 */
+    .msg {
+      padding: 10px 14px;
+      border-radius: 9px;
+      font-size: 13px;
+      margin-top: 10px;
+    }
+
+    .msg-success { background: #dcfce7; color: #15803d; }
+    .msg-error { background: #fee2e2; color: #dc2626; }
+    .msg-info { background: #e0e7ff; color: #3a3af4; }
+
+    /* 포인트 순위 */
+    .rank-item {
+      display: flex;
+      align-items: center;
+      padding: 10px 0;
+      border-bottom: 1px solid #f0f0f0;
+      gap: 12px;
+    }
+
+    .rank-num {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      background: #f3f4f6;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 13px;
+      font-weight: 700;
+      color: #555;
+      flex-shrink: 0;
+    }
+
+    .rank-num.gold { background: #fef3c7; color: #d97706; }
+    .rank-num.silver { background: #f1f5f9; color: #64748b; }
+    .rank-num.bronze { background: #fef0e7; color: #c2410c; }
+
+    .rank-name { flex: 1; font-weight: 600; font-size: 14px; }
+    .rank-point { font-size: 15px; font-weight: 700; color: #3a3af4; }
+
+    /* 공개 이벤트 */
+    .reveal-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 0;
+      border-bottom: 1px solid #f0f0f0;
+      gap: 12px;
+    }
+
+    .reveal-name { font-weight: 600; font-size: 14px; flex: 1; }
+
+    /* 리셋 버튼 영역 */
+    .danger-zone {
+      border: 2px dashed #fca5a5;
+      border-radius: 12px;
+      padding: 20px;
+      margin-top: 8px;
+    }
+
+    /* 경고 모달 */
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: rgba(0,0,0,0.5);
+      z-index: 1000;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .modal-overlay.show { display: flex; }
+
+    .modal {
+      background: white;
+      border-radius: 16px;
+      padding: 28px;
+      max-width: 380px;
+      width: 90%;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.15);
+    }
+
+    .modal h3 { font-size: 18px; margin-bottom: 12px; color: #dc2626; }
+    .modal p { font-size: 14px; color: #555; line-height: 1.6; margin-bottom: 16px; }
+
+    .modal-btns { display: flex; gap: 8px; flex-direction: column; }
+
+    /* 반응형 */
+    @media (max-width: 600px) {
+      .tab-menu button { font-size: 12px; padding: 8px 12px; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- 헤더 -->
+<div class="header">
+  <div>
+    <h1>🎭 학급 마니또 — 교사 대시보드</h1>
+    <span id="teacher-name-display"></span>
+  </div>
+  <button class="logout-btn" onclick="logout()">로그아웃</button>
+</div>
+
+<!-- 탭 메뉴 -->
+<div class="container">
+  <div class="tab-menu">
+    <button class="active" onclick="showPanel('students')">👥 학생 명단</button>
+    <button onclick="showPanel('assign')">🎲 마니또 배정</button>
+    <button onclick="showPanel('missions')">⭐ 미션 관리</button>
+    <button onclick="showPanel('points')">🏆 포인트 현황</button>
+    <button onclick="showPanel('reveal')">🎊 공개 이벤트</button>
+    <button onclick="showPanel('settings')">⚙️ 설정</button>
+  </div>
+
+  <!-- ① 학생 명단 패널 -->
+  <div class="panel active" id="panel-students">
+    <div class="card">
+      <h2>👥 학생 등록</h2>
+
+      <!-- 개별 등록 -->
+      <div style="margin-bottom:16px;">
+        <p style="font-size:13px;color:#888;margin-bottom:8px;">✏️ 개별 등록</p>
+        <div class="input-row">
+          <input type="text" id="new-name" placeholder="이름" style="width:120px">
+          <input type="text" id="new-studentnum" placeholder="학번 (4자리)" maxlength="4" style="width:130px">
+          <button class="btn btn-primary" onclick="addStudent()">추가</button>
+        </div>
+      </div>
+
+      <!-- 구분선 -->
+      <div style="border-top:1px dashed #e0e0e0;margin:16px 0;"></div>
+
+      <!-- 엑셀 업로드 -->
+      <div>
+        <p style="font-size:13px;color:#888;margin-bottom:8px;">📂 엑셀 파일로 일괄 등록 <span style="color:#3a3af4;font-size:12px;">(A열: 이름, B열: 학번)</span></p>
+        <div class="input-row" style="flex-wrap:wrap;gap:8px;">
+          <label style="display:inline-flex;align-items:center;padding:9px 16px;background:#f4f4f8;border:1.5px solid #e0e0e0;border-radius:9px;font-size:13px;color:#555;cursor:pointer;font-weight:600;">
+            📂 파일 선택
+            <input type="file" id="excel-file" accept=".xlsx,.xls,.csv" style="display:none;" onchange="previewExcel(this)">
+          </label>
+          <span id="excel-filename" style="font-size:13px;color:#888;align-self:center;">선택된 파일 없음</span>
+          <button class="btn btn-gray" onclick="downloadSample()">📥 양식 다운로드</button>
+        </div>
+        <div id="excel-preview" style="margin-top:10px;"></div>
+        <div id="excel-upload-wrap" style="display:none;margin-top:10px;">
+          <button class="btn btn-success" onclick="uploadExcel()" style="width:100%;">✅ 위 학생들 일괄 등록하기</button>
+        </div>
+      </div>
+
+      <div id="add-msg"></div>
+    </div>
+
+    <div class="card">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
+        <h2 style="margin-bottom:0;">📋 학생 목록 <span id="student-count" style="font-size:13px;color:#888;font-weight:400;"></span></h2>
+        <button class="btn btn-success" style="padding:7px 14px;font-size:13px;" onclick="downloadStudentList()">📥 명단 다운로드</button>
+      </div>
+      <table>
+        <thead>
+          <tr>
+            <th>이름</th>
+            <th>학번</th>
+            <th>임시 비밀번호</th>
+            <th>상태</th>
+            <th>관리</th>
+          </tr>
+        </thead>
+        <tbody id="student-table-body">
+          <tr><td colspan="5" style="text-align:center;color:#aaa;padding:24px;">학생을 추가해주세요</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ② 마니또 배정 패널 -->
+  <div class="panel" id="panel-assign">
+    <div class="card">
+      <h2>🎲 마니또 랜덤 배정</h2>
+      <p style="color:#666;font-size:14px;margin-bottom:16px;">
+        학생들을 1:1로 랜덤 배정해요. 배정 후에는 학생 화면에 대상이 표시돼요.
+      </p>
+      <div id="assign-status" class="msg msg-info" style="margin-bottom:16px;">배정 상태를 확인 중...</div>
+      <button class="btn btn-success" onclick="assignManitoo()" id="assign-btn">🎲 지금 랜덤 배정하기</button>
+    </div>
+
+    <div class="card">
+      <h2>📋 배정 결과</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>마니또 (해주는 사람)</th>
+            <th>학번</th>
+            <th>→</th>
+            <th>대상 (받는 사람)</th>
+            <th>학번</th>
+          </tr>
+        </thead>
+        <tbody id="pairs-table-body">
+          <tr><td colspan="3" style="text-align:center;color:#aaa;padding:24px;">배정 전입니다</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ③ 미션 관리 패널 -->
+  <div class="panel" id="panel-missions">
+    <div class="card">
+      <h2>⭐ 미션 등록</h2>
+      <div class="input-row">
+        <input type="text" id="new-mission" placeholder="미션 내용 입력" style="flex:1;min-width:200px;">
+        <button class="btn btn-primary" onclick="addMission()">등록</button>
+      </div>
+      <div id="mission-msg"></div>
+    </div>
+
+    <div class="card">
+      <h2>📋 미션 목록</h2>
+      <div id="mission-list">
+        <p style="color:#aaa;font-size:14px;text-align:center;padding:20px;">등록된 미션이 없어요</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ④ 포인트 현황 패널 -->
+  <div class="panel" id="panel-points">
+    <div class="card">
+      <h2>🏆 포인트 순위</h2>
+      <div id="point-rank-list">
+        <p style="color:#aaa;font-size:14px;text-align:center;padding:20px;">포인트 정보를 불러오는 중...</p>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>📥 결과 다운로드</h2>
+      <p style="color:#666;font-size:14px;margin-bottom:14px;">학생별 최종 포인트를 CSV 파일로 다운받아요.</p>
+      <button class="btn btn-primary" onclick="downloadPoints()">📥 CSV 다운로드</button>
+    </div>
+  </div>
+
+  <!-- ⑤ 공개 이벤트 패널 -->
+  <div class="panel" id="panel-reveal">
+    <div class="card">
+      <h2>🎊 마니또 개별 공개</h2>
+      <p style="color:#666;font-size:14px;margin-bottom:16px;">
+        학생을 한 명씩 선택해서 마니또를 공개해요. 공개된 학생 화면에만 결과가 표시돼요.
+      </p>
+      <div id="reveal-list">
+        <p style="color:#aaa;font-size:14px;text-align:center;padding:20px;">배정 후 공개할 수 있어요</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ⑥ 설정 패널 -->
+  <div class="panel" id="panel-settings">
+    <div class="card">
+      <h2>⚙️ 교사 계정 정보</h2>
+      <p style="color:#666;font-size:14px;" id="teacher-info-display"></p>
+    </div>
+
+    <div class="card">
+      <h2>🔄 마니또 리셋</h2>
+      <div class="danger-zone">
+        <p style="color:#dc2626;font-size:14px;font-weight:600;margin-bottom:8px;">⚠️ 주의 — 모든 데이터가 삭제됩니다</p>
+        <p style="color:#666;font-size:13px;margin-bottom:14px;">
+          학생 명단, 마니또 배정, 활동 기록, 포인트가 모두 초기화돼요.<br>
+          새 마니또를 시작하기 전에 포인트 결과를 먼저 저장하세요!
+        </p>
+        <button class="btn btn-danger" onclick="showResetModal()">🗑️ 전체 초기화 (리셋)</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 리셋 확인 모달 -->
+<div class="modal-overlay" id="reset-modal">
+  <div class="modal">
+    <h3>⚠️ 정말 초기화할까요?</h3>
+    <p>모든 학생 데이터, 마니또 배정, 활동 기록, 포인트가 <strong>영구 삭제</strong>됩니다. 되돌릴 수 없어요!</p>
+    <div class="modal-btns">
+      <button class="btn btn-primary" onclick="downloadAndReset()">📥 포인트 저장 후 초기화</button>
+      <button class="btn btn-danger" onclick="confirmReset()">🗑️ 저장 없이 바로 초기화</button>
+      <button class="btn btn-gray" onclick="closeResetModal()">취소</button>
+    </div>
+  </div>
+</div>
+
+<!-- Firebase -->
+<!-- SheetJS 엑셀 파싱 라이브러리 -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+
+<script>
+  // Firebase 초기화
+  const firebaseConfig = {
+    apiKey: "AIzaSyAyrDvr4m6TpBaZvqLDnQ_VAaKEQfKlNuI",
+    authDomain: "class-manitoo.firebaseapp.com",
+    projectId: "class-manitoo",
+    storageBucket: "class-manitoo.firebasestorage.app",
+    messagingSenderId: "415504976007",
+    appId: "1:415504976007:web:538c799557c9ef39ae9022"
+  };
+
+  firebase.initializeApp(firebaseConfig);
+  const db = firebase.firestore();
+
+  // 로그인 체크
+  const userId = sessionStorage.getItem('userId');
+  const role = sessionStorage.getItem('role');
+  const userName = sessionStorage.getItem('userName');
+
+  if (!userId || role !== 'teacher') {
+    window.location.href = 'index.html';
+  }
+
+  document.getElementById('teacher-name-display').textContent = userName + ' 선생님';
+  document.getElementById('teacher-info-display').textContent = '로그인 계정: ' + userName + ' 선생님';
+
+  // 탭 전환
+  function showPanel(name) {
+    document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('.tab-menu button').forEach(b => b.classList.remove('active'));
+    document.getElementById('panel-' + name).classList.add('active');
+    event.target.classList.add('active');
+
+    if (name === 'students') loadStudents();
+    if (name === 'assign') loadPairs();
+    if (name === 'missions') loadMissions();
+    if (name === 'points') loadPoints();
+    if (name === 'reveal') loadReveal();
+  }
+
+  // 로그아웃
+  function logout() {
+    sessionStorage.clear();
+    window.location.href = 'index.html';
+  }
+
+  // ────────────────────────────────
+  // 학생 관련
+  // ────────────────────────────────
+
+  // 6자리 임시 비밀번호 생성
+  function generateTempPassword() {
+    return String(Math.floor(100000 + Math.random() * 900000));
+  }
+
+  async function addStudent() {
+    const name = document.getElementById('new-name').value.trim();
+    const studentNum = document.getElementById('new-studentnum').value.trim();
+    const msgEl = document.getElementById('add-msg');
+
+    if (!name || !studentNum) {
+      msgEl.innerHTML = '<div class="msg msg-error">이름과 학번을 모두 입력해주세요.</div>';
+      return;
+    }
+    if (studentNum.length !== 4 || isNaN(studentNum)) {
+      msgEl.innerHTML = '<div class="msg msg-error">학번은 숫자 4자리여야 해요.</div>';
+      return;
+    }
+
+    // 중복 학번 체크
+    const dup = await db.collection('users')
+      .where('studentNum', '==', studentNum)
+      .where('role', '==', 'student').get();
+    if (!dup.empty) {
+      msgEl.innerHTML = '<div class="msg msg-error">이미 등록된 학번이에요.</div>';
+      return;
+    }
+
+    const tempPw = generateTempPassword();
+
+    await db.collection('users').add({
+      name: name,
+      studentNum: studentNum,
+      password: tempPw,
+      tempPassword: tempPw,
+      role: 'student',
+      isFirstLogin: true,
+      totalPoints: 0,
+      createdAt: firebase.firestore.FieldValue.serverTimestamp()
+    });
+
+    msgEl.innerHTML = `<div class="msg msg-success">✅ ${name} (학번: ${studentNum}) 등록 완료! 임시 비밀번호: <strong>${tempPw}</strong></div>`;
+    document.getElementById('new-name').value = '';
+    document.getElementById('new-studentnum').value = '';
+    loadStudents();
+  }
+
+  async function loadStudents() {
+    const snapshot = await db.collection('users')
+      .where('role', '==', 'student').get();
+
+    const tbody = document.getElementById('student-table-body');
+    document.getElementById('student-count').textContent = `(${snapshot.size}명)`;
+
+    if (snapshot.empty) {
+      tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:#aaa;padding:24px;">학생을 추가해주세요</td></tr>';
+      return;
+    }
+
+    tbody.innerHTML = snapshot.docs.map(doc => {
+      const d = doc.data();
+      const statusBadge = d.isFirstLogin
+        ? '<span class="badge badge-gray">미접속</span>'
+        : '<span class="badge badge-green">접속완료</span>';
+      return `
+        <tr>
+          <td><strong>${d.name}</strong></td>
+          <td>${d.studentNum}</td>
+          <td><code style="background:#f3f4f6;padding:3px 8px;border-radius:5px;">${d.tempPassword || '-'}</code></td>
+          <td>${statusBadge}</td>
+          <td>
+            <button class="btn btn-gray" style="padding:5px 10px;font-size:12px;"
+              onclick="resetStudentPw('${doc.id}', '${d.name}')">비번 초기화</button>
+            <button class="btn btn-danger" style="padding:5px 10px;font-size:12px;margin-left:4px;"
+              onclick="deleteStudent('${doc.id}', '${d.name}')">삭제</button>
+          </td>
+        </tr>`;
+    }).join('');
+  }
+
+  async function resetStudentPw(docId, name) {
+    if (!confirm(`${name} 학생의 비밀번호를 초기화할까요?`)) return;
+    const newPw = generateTempPassword();
+    await db.collection('users').doc(docId).update({
+      password: newPw,
+      tempPassword: newPw,
+      isFirstLogin: true
+    });
+    alert(`${name} 학생의 새 임시 비밀번호: ${newPw}`);
+    loadStudents();
+  }
+
+  async function deleteStudent(docId, name) {
+    if (!confirm(`${name} 학생을 삭제할까요?`)) return;
+    await db.collection('users').doc(docId).delete();
+    loadStudents();
+  }
+
+  // ────────────────────────────────
+  // 마니또 배정
+  // ────────────────────────────────
+
+  async function assignManitoo() {
+    const snapshot = await db.collection('users')
+      .where('role', '==', 'student').get();
+
+    if (snapshot.size < 2) {
+      alert('학생이 2명 이상 필요해요!');
+      return;
+    }
+
+    // 기존 배정 확인
+    const existingPairs = await db.collection('pairs').get();
+    if (!existingPairs.empty) {
+      if (!confirm('이미 배정된 마니또가 있어요. 다시 배정할까요? (기존 배정이 삭제돼요)')) return;
+      for (const doc of existingPairs.docs) {
+        await doc.ref.delete();
+      }
+    }
+
+    const students = snapshot.docs.map(d => ({ id: d.id, name: d.data().name, studentNum: d.data().studentNum }));
+
+    // 자기 자신이 안 걸리도록 완전 탈출 순열(derangement) 생성
+    function makeDerangement(arr) {
+      let result;
+      let tries = 0;
+      do {
+        result = [...arr];
+        for (let i = result.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [result[i], result[j]] = [result[j], result[i]];
+        }
+        tries++;
+      } while (result.some((r, i) => r.id === arr[i].id) && tries < 100);
+      return result;
+    }
+
+    const shuffled = makeDerangement(students);
+
+    // 배정
+    for (let i = 0; i < students.length; i++) {
+      const giver = students[i];
+      const receiver = shuffled[i];
+      await db.collection('pairs').add({
+        giverId: giver.id,
+        giverName: giver.name,
+        giverNum: giver.studentNum,
+        receiverId: receiver.id,
+        receiverName: receiver.name,
+        receiverNum: receiver.studentNum,
+        isRevealed: false,
+        createdAt: firebase.firestore.FieldValue.serverTimestamp()
+      });
+    }
+
+    alert('🎲 마니또 배정 완료!');
+    loadPairs();
+  }
+
+  async function loadPairs() {
+    const snapshot = await db.collection('pairs').get();
+    const tbody = document.getElementById('pairs-table-body');
+    const statusEl = document.getElementById('assign-status');
+
+    if (snapshot.empty) {
+      tbody.innerHTML = '<tr><td colspan="3" style="text-align:center;color:#aaa;padding:24px;">배정 전입니다</td></tr>';
+      statusEl.className = 'msg msg-info';
+      statusEl.textContent = '아직 배정이 안 됐어요.';
+      document.getElementById('assign-btn').style.display = 'block';
+      return;
+    }
+
+    statusEl.className = 'msg msg-success';
+    statusEl.textContent = `✅ 총 ${snapshot.size}쌍 배정 완료`;
+    document.getElementById('assign-btn').textContent = '🔄 다시 배정하기';
+
+    tbody.innerHTML = snapshot.docs.map(doc => {
+      const d = doc.data();
+      return `<tr>
+        <td><strong>${d.giverName}</strong></td>
+        <td style="color:#888;font-size:13px;">${d.giverNum || ''}</td>
+        <td style="text-align:center;">→</td>
+        <td><strong>${d.receiverName}</strong></td>
+        <td style="color:#888;font-size:13px;">${d.receiverNum || ''}</td>
+      </tr>`;
+    }).join('');
+  }
+
+  // ────────────────────────────────
+  // 미션 관리
+  // ────────────────────────────────
+
+  async function addMission() {
+    const title = document.getElementById('new-mission').value.trim();
+    const msgEl = document.getElementById('mission-msg');
+
+    if (!title) {
+      msgEl.innerHTML = '<div class="msg msg-error">미션 내용을 입력해주세요.</div>';
+      return;
+    }
+
+    await db.collection('missions').add({
+      title: title,
+      createdAt: firebase.firestore.FieldValue.serverTimestamp()
+    });
+
+    msgEl.innerHTML = '<div class="msg msg-success">✅ 미션이 등록됐어요!</div>';
+    document.getElementById('new-mission').value = '';
+    loadMissions();
+  }
+
+  async function loadMissions() {
+    const snapshot = await db.collection('missions').orderBy('createdAt').get();
+    const listEl = document.getElementById('mission-list');
+
+    if (snapshot.empty) {
+      listEl.innerHTML = '<p style="color:#aaa;font-size:14px;text-align:center;padding:20px;">등록된 미션이 없어요</p>';
+      return;
+    }
+
+    listEl.innerHTML = snapshot.docs.map((doc, i) => `
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid #f0f0f0;">
+        <span style="font-size:14px;"><span style="color:#3a3af4;font-weight:700;margin-right:8px;">${i+1}.</span>${doc.data().title}</span>
+        <button class="btn btn-danger" style="padding:5px 10px;font-size:12px;"
+          onclick="deleteMission('${doc.id}')">삭제</button>
+      </div>
+    `).join('');
+  }
+
+  async function deleteMission(docId) {
+    if (!confirm('이 미션을 삭제할까요?')) return;
+    await db.collection('missions').doc(docId).delete();
+    loadMissions();
+  }
+
+  // ────────────────────────────────
+  // 포인트 현황
+  // ────────────────────────────────
+
+  async function loadPoints() {
+    const snapshot = await db.collection('users')
+      .where('role', '==', 'student').get();
+
+    const students = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+    students.sort((a, b) => (b.totalPoints || 0) - (a.totalPoints || 0));
+
+    const listEl = document.getElementById('point-rank-list');
+
+    if (snapshot.empty) {
+      listEl.innerHTML = '<p style="color:#aaa;font-size:14px;text-align:center;padding:20px;">학생이 없어요</p>';
+      return;
+    }
+
+    const rankClasses = ['gold', 'silver', 'bronze'];
+    listEl.innerHTML = students.map((d, i) => {
+      const rankClass = rankClasses[i] || '';
+      const emoji = i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : '';
+      return `
+        <div class="rank-item">
+          <div class="rank-num ${rankClass}">${i+1}</div>
+          <div class="rank-name">${emoji} ${d.name}</div>
+          <div style="font-size:12px;color:#aaa;margin-right:8px;">학번 ${d.studentNum}</div>
+          <div class="rank-point">${d.totalPoints || 0}점</div>
+        </div>`;
+    }).join('');
+  }
+
+  function downloadPoints() {
+    db.collection('users').where('role', '==', 'student').get().then(snapshot => {
+        if (snapshot.empty) { alert('학생 데이터가 없어요.'); return; }
+
+        const students = snapshot.docs.map(d => d.data());
+        students.sort((a, b) => (b.totalPoints || 0) - (a.totalPoints || 0));
+
+        let csv = '\uFEFF이름,학번,총포인트\n';
+        students.forEach(d => {
+          csv += `${d.name},${d.studentNum},${d.totalPoints || 0}\n`;
+        });
+
+        const blob = new Blob([csv], { type: 'text/csv' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = '마니또_포인트결과.csv';
+        a.click();
+        URL.revokeObjectURL(url);
+      }).catch(e => {
+        alert('오류: ' + e.message);
+      });
+  }
+
+  // ────────────────────────────────
+  // 공개 이벤트
+  // ────────────────────────────────
+
+  async function loadReveal() {
+    const snapshot = await db.collection('pairs').get();
+    const listEl = document.getElementById('reveal-list');
+
+    if (snapshot.empty) {
+      listEl.innerHTML = '<p style="color:#aaa;font-size:14px;text-align:center;padding:20px;">배정 후 공개할 수 있어요</p>';
+      return;
+    }
+
+    listEl.innerHTML = snapshot.docs.map(doc => {
+      const d = doc.data();
+      const isRevealed = d.isRevealed;
+      return `
+        <div class="reveal-item">
+          <div class="reveal-name">${d.giverName} <span style="color:#aaa;font-size:12px;">${d.giverNum || ''}</span></div>
+          <span style="color:#aaa;font-size:18px;">→</span>
+          <div class="reveal-name">${d.receiverName} <span style="color:#aaa;font-size:12px;">${d.receiverNum || ''}</span></div>
+          ${isRevealed
+            ? '<span class="badge badge-green">공개됨</span>'
+            : `<button class="btn btn-warning" style="padding:6px 14px;font-size:13px;"
+                onclick="revealOne('${doc.id}', '${d.giverName}', '${d.receiverName}')">공개하기</button>`
+          }
+        </div>`;
+    }).join('');
+  }
+
+  async function revealOne(docId, giverName, receiverName) {
+    if (!confirm(`${giverName}의 마니또(${receiverName})를 공개할까요?`)) return;
+    await db.collection('pairs').doc(docId).update({ isRevealed: true });
+    loadReveal();
+  }
+
+  // ────────────────────────────────
+  // 리셋
+  // ────────────────────────────────
+
+  function showResetModal() {
+    document.getElementById('reset-modal').classList.add('show');
+  }
+
+  function closeResetModal() {
+    document.getElementById('reset-modal').classList.remove('show');
+  }
+
+  async function downloadAndReset() {
+    downloadPoints();
+    setTimeout(async () => {
+      await doReset();
+    }, 800);
+  }
+
+  async function confirmReset() {
+    if (!confirm('포인트를 저장하지 않고 초기화할까요? 정말요?')) return;
+    await doReset();
+  }
+
+  async function doReset() {
+    closeResetModal();
+    alert('초기화 중입니다. 잠시 기다려주세요...');
+
+    const collections = ['users', 'pairs', 'missions', 'activityLogs', 'reactionLogs', 'pointLogs'];
+    for (const col of collections) {
+      const snapshot = await db.collection(col).get();
+      for (const doc of snapshot.docs) {
+        if (col === 'users' && doc.data().role === 'teacher') continue;
+        await doc.ref.delete();
+      }
+    }
+
+    alert('✅ 초기화 완료! 새 마니또를 시작할 수 있어요.');
+    loadStudents();
+  }
+
+  // ────────────────────────────────
+  // 엑셀 업로드
+  // ────────────────────────────────
+
+  let excelData = []; // 미리보기용 파싱 데이터
+
+  function previewExcel(input) {
+    const file = input.files[0];
+    if (!file) return;
+
+    document.getElementById('excel-filename').textContent = file.name;
+
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      try {
+        const data = new Uint8Array(e.target.result);
+        const workbook = XLSX.read(data, { type: 'array' });
+        const sheet = workbook.Sheets[workbook.SheetNames[0]];
+        const rows = XLSX.utils.sheet_to_json(sheet, { header: 1 });
+
+        // 첫 행이 헤더인지 확인 (이름/학번 포함 시 건너뜀)
+        let startRow = 0;
+        if (rows.length > 0) {
+          const firstRow = String(rows[0][0] || '').trim();
+          if (firstRow === '이름' || firstRow === '성명') startRow = 1;
+        }
+
+        excelData = [];
+        for (let i = startRow; i < rows.length; i++) {
+          const name = String(rows[i][0] || '').trim();
+          const num = String(rows[i][1] || '').trim();
+          if (name && num) excelData.push({ name, studentNum: num });
+        }
+
+        if (excelData.length === 0) {
+          document.getElementById('excel-preview').innerHTML =
+            '<div class="msg msg-error">읽을 수 있는 데이터가 없어요. A열(이름), B열(학번) 형식인지 확인해주세요.</div>';
+          document.getElementById('excel-upload-wrap').style.display = 'none';
+          return;
+        }
+
+        // 미리보기 테이블
+        let html = '<p style="font-size:13px;color:#555;margin-bottom:8px;">📋 아래 ' + excelData.length + '명을 등록해요:</p>';
+        html += '<table style="width:100%;border-collapse:collapse;font-size:13px;">';
+        html += '<thead><tr style="background:#f8f9ff;"><th style="padding:8px;text-align:left;border-bottom:1px solid #eee;">이름</th><th style="padding:8px;text-align:left;border-bottom:1px solid #eee;">학번</th></tr></thead><tbody>';
+        excelData.forEach(d => {
+          html += '<tr><td style="padding:7px 8px;border-bottom:1px solid #f4f4f4;">' + d.name + '</td><td style="padding:7px 8px;border-bottom:1px solid #f4f4f4;">' + d.studentNum + '</td></tr>';
+        });
+        html += '</tbody></table>';
+        document.getElementById('excel-preview').innerHTML = html;
+        document.getElementById('excel-upload-wrap').style.display = 'block';
+
+      } catch (err) {
+        document.getElementById('excel-preview').innerHTML =
+          '<div class="msg msg-error">파일을 읽을 수 없어요: ' + err.message + '</div>';
+      }
+    };
+    reader.readAsArrayBuffer(file);
+  }
+
+  async function uploadExcel() {
+    if (excelData.length === 0) return;
+
+    const btn = document.querySelector('#excel-upload-wrap .btn');
+    btn.disabled = true;
+    btn.textContent = '등록 중...';
+
+    let successCount = 0;
+    let skipCount = 0;
+    const msgEl = document.getElementById('add-msg');
+
+    for (const student of excelData) {
+      const { name, studentNum } = student;
+
+      // 학번 유효성 확인
+      if (!studentNum || studentNum.length !== 4 || isNaN(studentNum)) {
+        skipCount++;
+        continue;
+      }
+
+      // 중복 확인
+      const dup = await db.collection('users')
+        .where('studentNum', '==', studentNum)
+        .where('role', '==', 'student').get();
+      if (!dup.empty) { skipCount++; continue; }
+
+      const tempPw = generateTempPassword();
+      await db.collection('users').add({
+        name, studentNum,
+        password: tempPw,
+        tempPassword: tempPw,
+        role: 'student',
+        isFirstLogin: true,
+        totalPoints: 0,
+        createdAt: firebase.firestore.FieldValue.serverTimestamp()
+      });
+      successCount++;
+    }
+
+    btn.disabled = false;
+    btn.textContent = '✅ 위 학생들 일괄 등록하기';
+
+    let msg = '<div class="msg msg-success">✅ ' + successCount + '명 등록 완료!';
+    if (skipCount > 0) msg += ' (' + skipCount + '명은 중복/오류로 건너뜀)';
+    msg += '</div>';
+    msgEl.innerHTML = msg;
+
+    // 초기화
+    excelData = [];
+    document.getElementById('excel-file').value = '';
+    document.getElementById('excel-filename').textContent = '선택된 파일 없음';
+    document.getElementById('excel-preview').innerHTML = '';
+    document.getElementById('excel-upload-wrap').style.display = 'none';
+    loadStudents();
+  }
+
+  function downloadStudentList() {
+    db.collection('users').where('role', '==', 'student').get().then(snapshot => {
+      if (snapshot.empty) { alert('등록된 학생이 없어요.'); return; }
+
+      const students = snapshot.docs.map(d => d.data());
+      students.sort((a, b) => a.studentNum - b.studentNum);
+
+      const rows = [['이름', '학번', '임시 비밀번호', '접속 주소']];
+      students.forEach(d => {
+        rows.push([d.name, d.studentNum, d.tempPassword || '-', 'https://class-manitoo.web.app']);
+      });
+
+      const ws = XLSX.utils.aoa_to_sheet(rows);
+
+      // 열 너비 설정
+      ws['!cols'] = [
+        { wch: 10 }, // 이름
+        { wch: 10 }, // 학번
+        { wch: 16 }, // 임시 비밀번호
+        { wch: 32 }, // 접속 주소
+      ];
+
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, '학생명단');
+      XLSX.writeFile(wb, '학급마니또_학생명단.xlsx');
+    }).catch(e => alert('오류: ' + e.message));
+  }
+
+  function downloadSample() {
+    const ws = XLSX.utils.aoa_to_sheet([
+      ['이름', '학번'],
+      ['김철수', '2201'],
+      ['이영희', '2202'],
+      ['박민준', '2203'],
+    ]);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, '학생명단');
+    XLSX.writeFile(wb, '학생명단_양식.xlsx');
+  }
+
+  // 초기 로딩
+  loadStudents();
+</script>
+
+</body>
+</html>

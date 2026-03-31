@@ -1,0 +1,612 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>학생 대시보드 — 학급 마니또</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Noto Sans KR', sans-serif;
+      background: #f0f4ff;
+      min-height: 100vh;
+    }
+
+    .header {
+      background: #3a3af4;
+      color: white;
+      padding: 16px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .header h1 { font-size: 18px; font-weight: 700; }
+    .header span { font-size: 13px; opacity: 0.85; }
+
+    .logout-btn {
+      background: rgba(255,255,255,0.2);
+      color: white;
+      border: none;
+      padding: 7px 14px;
+      border-radius: 8px;
+      font-size: 13px;
+      cursor: pointer;
+    }
+
+    .container {
+      max-width: 600px;
+      margin: 24px auto;
+      padding: 0 16px;
+    }
+
+    /* 대기 화면 */
+    .waiting-card {
+      background: white;
+      border-radius: 16px;
+      padding: 48px 24px;
+      text-align: center;
+      box-shadow: 0 1px 8px rgba(0,0,0,0.06);
+    }
+
+    .waiting-card .big-emoji { font-size: 56px; margin-bottom: 16px; }
+    .waiting-card h2 { font-size: 18px; color: #333; margin-bottom: 8px; }
+    .waiting-card p { font-size: 14px; color: #888; line-height: 1.6; }
+
+    /* 카드 */
+    .card {
+      background: white;
+      border-radius: 14px;
+      padding: 20px;
+      margin-bottom: 14px;
+      box-shadow: 0 1px 8px rgba(0,0,0,0.06);
+    }
+
+    .card h2 {
+      font-size: 15px;
+      font-weight: 700;
+      color: #333;
+      margin-bottom: 14px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    /* 포인트 배너 */
+    .point-banner {
+      background: linear-gradient(135deg, #3a3af4, #7c7cf8);
+      color: white;
+      border-radius: 14px;
+      padding: 20px 24px;
+      margin-bottom: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .point-banner .label { font-size: 13px; opacity: 0.85; }
+    .point-banner .point { font-size: 32px; font-weight: 700; }
+    .point-banner .emoji { font-size: 36px; }
+
+    /* 마니또 대상 카드 */
+    .target-box {
+      background: #f8f9ff;
+      border: 2px solid #e0e4ff;
+      border-radius: 12px;
+      padding: 16px;
+      text-align: center;
+    }
+
+    .target-box .target-emoji { font-size: 36px; margin-bottom: 8px; }
+    .target-box .target-label { font-size: 12px; color: #888; margin-bottom: 4px; }
+    .target-box .target-name { font-size: 20px; font-weight: 700; color: #3a3af4; }
+
+    /* 이모지 선택 */
+    .emoji-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      margin-bottom: 14px;
+    }
+
+    .emoji-btn {
+      background: #f8f9ff;
+      border: 2px solid #e0e4ff;
+      border-radius: 12px;
+      padding: 14px 8px;
+      cursor: pointer;
+      text-align: center;
+      transition: all 0.2s;
+      font-size: 13px;
+    }
+
+    .emoji-btn:hover { border-color: #3a3af4; background: #eef0ff; }
+    .emoji-btn.selected { border-color: #3a3af4; background: #e0e4ff; }
+
+    .emoji-btn .e { font-size: 28px; display: block; margin-bottom: 4px; }
+    .emoji-btn .t { font-size: 11px; color: #666; }
+
+    /* 피드 */
+    .feed-item {
+      padding: 12px 0;
+      border-bottom: 1px solid #f0f0f0;
+    }
+
+    .feed-item:last-child { border-bottom: none; }
+
+    .feed-header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 8px;
+    }
+
+    .feed-emoji { font-size: 28px; }
+    .feed-info { flex: 1; }
+    .feed-label { font-size: 13px; font-weight: 600; color: #333; }
+    .feed-time { font-size: 11px; color: #aaa; }
+
+    .reaction-row {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+      margin-top: 6px;
+    }
+
+    .reaction-btn {
+      background: #f8f9ff;
+      border: 1.5px solid #e0e4ff;
+      border-radius: 20px;
+      padding: 5px 10px;
+      font-size: 16px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .reaction-btn:hover { border-color: #3a3af4; }
+    .reaction-btn.reacted { border-color: #3a3af4; background: #e0e4ff; }
+
+    /* 미션 목록 */
+    .mission-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 0;
+      border-bottom: 1px solid #f0f0f0;
+      font-size: 14px;
+      color: #333;
+    }
+
+    .mission-item:last-child { border-bottom: none; }
+    .mission-num { color: #3a3af4; font-weight: 700; min-width: 20px; }
+
+    /* 공개 결과 */
+    .reveal-result {
+      background: linear-gradient(135deg, #fef3c7, #fde68a);
+      border-radius: 12px;
+      padding: 24px;
+      text-align: center;
+    }
+
+    .reveal-result .big { font-size: 40px; margin-bottom: 8px; }
+    .reveal-result .name { font-size: 22px; font-weight: 700; color: #92400e; }
+    .reveal-result .sub { font-size: 13px; color: #b45309; margin-top: 4px; }
+
+    /* 버튼 */
+    .btn {
+      padding: 11px 20px;
+      border: none;
+      border-radius: 9px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .btn-primary { background: #3a3af4; color: white; width: 100%; }
+    .btn-primary:hover { background: #2929d4; }
+    .btn-primary:disabled { background: #aaa; cursor: not-allowed; }
+
+    .msg {
+      padding: 10px 14px;
+      border-radius: 9px;
+      font-size: 13px;
+      margin-top: 10px;
+    }
+
+    .msg-success { background: #dcfce7; color: #15803d; }
+    .msg-error { background: #fee2e2; color: #dc2626; }
+    .msg-info { background: #e0e7ff; color: #3a3af4; }
+
+    /* 하루 제한 표시 */
+    .limit-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: #f8f9ff;
+      border-radius: 8px;
+      padding: 8px 12px;
+      margin-bottom: 12px;
+      font-size: 13px;
+      color: #555;
+    }
+
+    .limit-dots { display: flex; gap: 6px; }
+    .dot { width: 12px; height: 12px; border-radius: 50%; background: #e0e4ff; }
+    .dot.used { background: #3a3af4; }
+  </style>
+</head>
+<body>
+
+<div class="header">
+  <div>
+    <h1>🎭 학급 마니또</h1>
+    <span id="student-name-display"></span>
+  </div>
+  <button class="logout-btn" onclick="logout()">로그아웃</button>
+</div>
+
+<div class="container" id="main-container">
+  <p style="text-align:center;color:#aaa;padding:40px;">불러오는 중...</p>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+<script>
+  const firebaseConfig = {
+    apiKey: "AIzaSyAyrDvr4m6TpBaZvqLDnQ_VAaKEQfKlNuI",
+    authDomain: "class-manitoo.firebaseapp.com",
+    projectId: "class-manitoo",
+    storageBucket: "class-manitoo.firebasestorage.app",
+    messagingSenderId: "415504976007",
+    appId: "1:415504976007:web:538c799557c9ef39ae9022"
+  };
+
+  firebase.initializeApp(firebaseConfig);
+  const db = firebase.firestore();
+
+  const userId = sessionStorage.getItem('userId');
+  const userName = sessionStorage.getItem('userName');
+  const userNum = sessionStorage.getItem('userNum');
+  if (!userId) window.location.href = 'index.html';
+
+  document.getElementById('student-name-display').textContent = userName + ' 학생 · ' + (userNum || '');
+
+  let myPairId = null;
+  let myReceiverId = null;
+  let myReceiverName = null;
+  let todayCount = 0;
+  let selectedEmoji = null;
+  let selectedEmojiLabel = null;
+
+  const ACTIVITY_EMOJIS = [
+    { emoji: '🎁', label: '선물/간식' },
+    { emoji: '💬', label: '응원/말걸기' },
+    { emoji: '🤝', label: '도움' },
+    { emoji: '😄', label: '웃게 해줌' },
+    { emoji: '📝', label: '메모/편지' },
+    { emoji: '⭐', label: '미션 수행' },
+  ];
+
+  const REACTION_EMOJIS = [
+    { emoji: '🥰', label: '너무 고마워요', points: 10 },
+    { emoji: '😊', label: '기분 좋아요', points: 10 },
+    { emoji: '😲', label: '깜짝 놀랐어요', points: 10 },
+    { emoji: '🤗', label: '힘났어요', points: 10 },
+    { emoji: '💛', label: '따뜻했어요', points: 10 },
+    { emoji: '🤷', label: '모르겠어요', points: 0 },
+  ];
+
+  function logout() {
+    sessionStorage.clear();
+    window.location.href = 'index.html';
+  }
+
+  function getTodayStr() {
+    const d = new Date();
+    return `${d.getFullYear()}-${d.getMonth()+1}-${d.getDate()}`;
+  }
+
+  async function init() {
+    const userDoc = await db.collection('users').doc(userId).get();
+    const userData = userDoc.data();
+
+    // 포인트 로그인 보너스 (하루 1번)
+    const todayStr = getTodayStr();
+    if (userData.lastLoginDate !== todayStr) {
+      await db.collection('users').doc(userId).update({
+        totalPoints: firebase.firestore.FieldValue.increment(3),
+        lastLoginDate: todayStr
+      });
+      await db.collection('pointLogs').add({
+        userId, points: 3, reason: '로그인',
+        createdAt: firebase.firestore.FieldValue.serverTimestamp()
+      });
+    }
+
+    // 내 배정 확인
+    const pairSnap = await db.collection('pairs')
+      .where('giverId', '==', userId).get();
+
+    const container = document.getElementById('main-container');
+
+    if (pairSnap.empty) {
+      // 대기 화면
+      container.innerHTML = `
+        <div class="waiting-card">
+          <div class="big-emoji">⏳</div>
+          <h2>선생님이 마니또를 배정 중이에요!</h2>
+          <p>잠시만 기다려주세요.<br>배정이 완료되면 이 화면이 바뀌어요 😊</p>
+        </div>`;
+      return;
+    }
+
+    const pairData = pairSnap.docs[0].data();
+    myPairId = pairSnap.docs[0].id;
+    myReceiverId = pairData.receiverId;
+    myReceiverName = pairData.receiverName;
+
+    // 내 최신 포인트
+    const freshUser = await db.collection('users').doc(userId).get();
+    const totalPoints = freshUser.data().totalPoints || 0;
+
+    // 오늘 보낸 횟수 확인
+    const todayStart = new Date();
+    todayStart.setHours(0,0,0,0);
+    const todayLogs = await db.collection('activityLogs')
+      .where('pairId', '==', myPairId)
+      .where('senderId', '==', userId).get();
+
+    todayCount = todayLogs.docs.filter(d => {
+      const t = d.data().createdAt?.toDate();
+      return t && t >= todayStart;
+    }).length;
+
+    // 공개 여부 확인
+    const isRevealed = pairData.isRevealed;
+
+    // 받은 피드 (아침 7시 이전 것만 표시)
+    const now = new Date();
+    const showBefore = new Date();
+    showBefore.setHours(7, 0, 0, 0);
+    if (now.getHours() < 7) showBefore.setDate(showBefore.getDate() - 1);
+
+    const feedSnap = await db.collection('activityLogs')
+      .where('receiverId', '==', userId).get();
+
+    const visibleFeed = feedSnap.docs.filter(d => {
+      const t = d.data().createdAt?.toDate();
+      return t && t <= showBefore;
+    });
+
+    // 미션 목록
+    const missionSnap = await db.collection('missions').get();
+
+    container.innerHTML = `
+      <!-- 포인트 배너 -->
+      <div class="point-banner">
+        <div>
+          <div class="label">내 총 포인트</div>
+          <div class="point">${totalPoints}<span style="font-size:16px;font-weight:400;margin-left:4px;">점</span></div>
+        </div>
+        <div class="emoji">🏆</div>
+      </div>
+
+      <!-- 내 마니또 대상 -->
+      <div class="card">
+        <h2>🎯 내 마니또 대상</h2>
+        <div class="target-box">
+          <div class="target-emoji">🎭</div>
+          <div class="target-label">내가 챙겨줄 친구</div>
+          <div class="target-name">${myReceiverName}(${pairData.receiverNum || ''})</div>
+        </div>
+      </div>
+
+      <!-- 활동 이모지 보내기 -->
+      <div class="card">
+        <h2>📤 활동 이모지 보내기</h2>
+        <div class="limit-bar">
+          <span>오늘 남은 횟수</span>
+          <div class="limit-dots">
+            <div class="dot ${todayCount >= 1 ? 'used' : ''}"></div>
+            <div class="dot ${todayCount >= 2 ? 'used' : ''}"></div>
+          </div>
+        </div>
+        <div class="emoji-grid" id="emoji-grid">
+          ${ACTIVITY_EMOJIS.map(e => `
+            <div class="emoji-btn" onclick="selectEmoji('${e.emoji}','${e.label}',this)">
+              <span class="e">${e.emoji}</span>
+              <span class="t">${e.label}</span>
+            </div>`).join('')}
+        </div>
+        <button class="btn btn-primary" id="send-btn"
+          onclick="sendActivity()" ${todayCount >= 2 ? 'disabled' : ''}>
+          ${todayCount >= 2 ? '오늘 다 보냈어요! (내일 다시)' : '이모지 보내기 (+10점)'}
+        </button>
+        <div id="send-msg"></div>
+      </div>
+
+      <!-- 받은 활동 피드 -->
+      <div class="card">
+        <h2>📥 받은 활동 피드</h2>
+        ${visibleFeed.length === 0
+          ? '<p style="color:#aaa;font-size:14px;text-align:center;padding:16px;">아직 받은 활동이 없어요<br><span style="font-size:12px;">(매일 아침 7시에 공개돼요)</span></p>'
+          : `<div id="feed-list">${renderFeed(visibleFeed)}</div>`
+        }
+      </div>
+
+      <!-- 미션 목록 -->
+      <div class="card">
+        <h2>⭐ 미션 목록</h2>
+        ${missionSnap.empty
+          ? '<p style="color:#aaa;font-size:14px;text-align:center;padding:16px;">등록된 미션이 없어요</p>'
+          : missionSnap.docs.map((d, i) => `
+              <div class="mission-item">
+                <span class="mission-num">${i+1}</span>
+                <span>${d.data().title}</span>
+              </div>`).join('')
+        }
+      </div>
+
+      <!-- 마니또 공개 결과 -->
+      ${isRevealed ? `
+      <div class="card">
+        <h2>🎊 마니또 공개!</h2>
+        <div class="reveal-result">
+          <div class="big">🎭</div>
+          <div class="name">내 마니또는 ${pairData.giverName}(${pairData.giverNum || ''})이었어요!</div>
+          <div class="sub">고마워요 💛</div>
+        </div>
+      </div>` : ''}
+    `;
+
+    // 받은 피드 반응 이모지 로드
+    if (visibleFeed.length > 0) loadReactions(visibleFeed);
+  }
+
+  function renderFeed(feedDocs) {
+    return feedDocs.map(doc => {
+      const d = doc.data();
+      const time = d.createdAt?.toDate();
+      const timeStr = time ? `${time.getMonth()+1}/${time.getDate()}` : '';
+      return `
+        <div class="feed-item" id="feed-${doc.id}">
+          <div class="feed-header">
+            <span class="feed-emoji">${d.emoji}</span>
+            <div class="feed-info">
+              <div class="feed-label">${d.emojiLabel} ${d.isMission ? '⭐' : ''}</div>
+              <div class="feed-time">${timeStr}</div>
+            </div>
+          </div>
+          <div class="reaction-row" id="reaction-${doc.id}">
+            <span style="font-size:12px;color:#aaa;">반응 이모지 불러오는 중...</span>
+          </div>
+        </div>`;
+    }).join('');
+  }
+
+  async function loadReactions(feedDocs) {
+    for (const doc of feedDocs) {
+      const actId = doc.id;
+      const reactionSnap = await db.collection('reactionLogs')
+        .where('activityId', '==', actId).get();
+
+      const reactionRow = document.getElementById('reaction-' + actId);
+      if (!reactionRow) continue;
+
+      if (!reactionSnap.empty) {
+        const r = reactionSnap.docs[0].data();
+        reactionRow.innerHTML = `<span style="font-size:13px;color:#888;">내 반응: ${r.emoji} <span style="color:#3a3af4;font-weight:600;">${r.emoji === '🤷' ? '+0점' : '+10점'}</span></span>`;
+      } else {
+        reactionRow.innerHTML = `
+          <span style="font-size:12px;color:#888;margin-bottom:4px;">반응 선택:</span>
+          ${REACTION_EMOJIS.map(r => `
+            <button class="reaction-btn" title="${r.label}"
+              onclick="sendReaction('${actId}','${r.emoji}','${r.label}',${r.points},this)">
+              ${r.emoji}
+            </button>`).join('')}`;
+      }
+    }
+  }
+
+  function selectEmoji(emoji, label, el) {
+    document.querySelectorAll('.emoji-btn').forEach(b => b.classList.remove('selected'));
+    el.classList.add('selected');
+    selectedEmoji = emoji;
+    selectedEmojiLabel = label;
+  }
+
+  async function sendActivity() {
+    if (!selectedEmoji) {
+      document.getElementById('send-msg').innerHTML =
+        '<div class="msg msg-error">이모지를 먼저 선택해주세요!</div>';
+      return;
+    }
+    if (todayCount >= 2) return;
+
+    const isMission = selectedEmoji === '⭐';
+
+    await db.collection('activityLogs').add({
+      pairId: myPairId,
+      senderId: userId,
+      receiverId: myReceiverId,
+      emoji: selectedEmoji,
+      emojiLabel: selectedEmojiLabel,
+      isMission: isMission,
+      createdAt: firebase.firestore.FieldValue.serverTimestamp()
+    });
+
+    await db.collection('users').doc(userId).update({
+      totalPoints: firebase.firestore.FieldValue.increment(10)
+    });
+
+    await db.collection('pointLogs').add({
+      userId, points: 10,
+      reason: '활동 이모지: ' + selectedEmojiLabel,
+      createdAt: firebase.firestore.FieldValue.serverTimestamp()
+    });
+
+    todayCount++;
+    document.getElementById('send-msg').innerHTML =
+      '<div class="msg msg-success">✅ 보냈어요! +10점 적립! 🎉</div>';
+
+    if (todayCount >= 2) {
+      document.getElementById('send-btn').disabled = true;
+      document.getElementById('send-btn').textContent = '오늘 다 보냈어요! (내일 다시)';
+    }
+
+    document.querySelectorAll('.dot')[todayCount-1]?.classList.add('used');
+    selectedEmoji = null;
+    selectedEmojiLabel = null;
+    document.querySelectorAll('.emoji-btn').forEach(b => b.classList.remove('selected'));
+  }
+
+  async function sendReaction(activityId, emoji, label, points, btn) {
+    // 중복 체크
+    const existing = await db.collection('reactionLogs')
+      .where('activityId', '==', activityId).get();
+    if (!existing.empty) return;
+
+    await db.collection('reactionLogs').add({
+      activityId,
+      userId,
+      emoji,
+      label,
+      receiverPoints: points,
+      senderBonus: points > 0 ? 5 : 0,
+      modifiedCount: 0,
+      createdAt: firebase.firestore.FieldValue.serverTimestamp()
+    });
+
+    if (points > 0) {
+      // 받는 사람(나) +10점
+      await db.collection('users').doc(userId).update({
+        totalPoints: firebase.firestore.FieldValue.increment(10)
+      });
+      await db.collection('pointLogs').add({
+        userId, points: 10, reason: '반응 이모지: ' + label,
+        createdAt: firebase.firestore.FieldValue.serverTimestamp()
+      });
+
+      // 보낸 사람(마니또) +5점 보너스
+      const actDoc = await db.collection('activityLogs').doc(activityId).get();
+      const senderId = actDoc.data().senderId;
+      await db.collection('users').doc(senderId).update({
+        totalPoints: firebase.firestore.FieldValue.increment(5)
+      });
+      await db.collection('pointLogs').add({
+        userId: senderId, points: 5, reason: '반응 이모지 보너스',
+        createdAt: firebase.firestore.FieldValue.serverTimestamp()
+      });
+    }
+
+    const row = document.getElementById('reaction-' + activityId);
+    row.innerHTML = `<span style="font-size:13px;color:#888;">내 반응: ${emoji} <span style="color:#3a3af4;font-weight:600;">${points > 0 ? '+10점' : '+0점'}</span></span>`;
+  }
+
+  init();
+</script>
+
+</body>
+</html>
